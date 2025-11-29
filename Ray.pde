@@ -1,6 +1,4 @@
 
-final float epsilon = 1E-7;
-
 class Ray {
   PVector o; // Точка начала луча
   PVector u; // Вектор направления луча (должен быть нормализован!)
@@ -40,8 +38,9 @@ class Ray {
     float t = detT / det;
     float s = detS / det;
     
-    if(t < 0) return null; // Точка за камерой
-    if(s < 0 || s > 1) return null; // Точка за пределами стены
+    if(t < 0)            return null; // Точка за камерой
+    if(t > r_renderDist) return null; // Если расстояние больше заданного
+    if(s < 0 || s > 1)   return null; // Точка за пределами стены
     
     return new float[]{t, s};
   }

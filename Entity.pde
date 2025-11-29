@@ -1,7 +1,5 @@
 
-float gravity = 0.10;
-
-abstract class Entity implements Serializable {
+abstract class Entity {
   abstract void update();
 }
 
@@ -132,7 +130,7 @@ class Player extends DynamicEntity {
       velocity.z *= -1;
     }
     
-    velocity.z -= gravity;
+    velocity.z -= currentMap.w_gravity;
     
     camera.origin = PVector.add(origin, camPos);
     camera.direction = direction;
