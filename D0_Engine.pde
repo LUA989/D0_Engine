@@ -15,24 +15,18 @@ void setup() {
   size(600, 400, P2D);
   surface.setResizable(true);
   frameRate(1000);
-  
+  background(0);
   textAlign(LEFT, TOP);
   
   text("Loading...", 5, 5);
   
-  cachedImages = new PImage[]{};
+  pressedKeys = new ArrayList<>();
   
   precacheTextures(sketchPath() + "\\assets\\textures");
   
-  println("Loading Map...");
-  currentMap = new Map();
-  println("Done!\n");
-  
-  
+  loadMap();
   
   viewportCamera = currentMap.player.camera;
-  
-  buildMap();
 }
 
 void draw() {
@@ -55,28 +49,24 @@ void draw() {
 }
 
 
-void keyPressed() {
-  switch(key) {
-    case '5':
-    saveFrame("screenshot-" + year() + month() + day() + "-#####.png");
-    break;
-  }
-}
 
-
-
-void buildMap() {
+void loadMap() {
+  println("Loading Map...");
+  currentMap = new Map();
   currentMap.walls = (Wall[])append(currentMap.walls, new Wall(new PVector(8.75,  5, 2), new PVector(10,  -2.5, 0.0), cachedImages[1]));
   currentMap.walls = (Wall[])append(currentMap.walls, new Wall(new PVector(8.75,  5, 2), new PVector(7.5, -5,   0.0), cachedImages[0]));
+  println("Done!\n");
 }
 
 void precacheTextures(String path) {
   println("Loading Images...");
+  cachedImages = new PImage[]{};
   
   File[] availableFiles = new File(path).listFiles();
   
   println("Available files:");
   printArray(availableFiles);
+  println();
   
   for(File f : availableFiles) {
     println("Found file " + f.getAbsolutePath());
@@ -131,6 +121,8 @@ void renderViewport(Camera viewport) {
   for(int i = 0; i < width; i++) {
     float uv = (float)i / width - 0.5;
     
+    uv *= tan(radians(cam_fov) / 2);
+    
     PVector rd = new PVector(1, uv);
     rd.rotate(viewport.direction);
     rd.normalize();
@@ -142,7 +134,6 @@ void renderViewport(Camera viewport) {
     for(RayHit hit : hits) {
       hit.dist *= cos(rd.heading() - viewport.direction); // Удаляем фишай
       float drawDist = 1.0 / hit.dist;
-      float colorDrawDist = clamp(drawDist, 0.75, 1);
       
       int x = round(hit.uv * (hit.texture.width - 1));
       
@@ -151,13 +142,18 @@ void renderViewport(Camera viewport) {
         
       float wallHeight = wallTop - wallBottom;
       
+      float fogLength = r_renderDist - r_fogStartDist;
+      float fogAmount = 0;
+      
+      if(fogLength >= 0 && hit.dist >= r_fogStartDist) fogAmount = map(hit.dist, r_fogStartDist, r_renderDist, 0, 1);
+      
       if(r_drawTextures) {
         for(int y = 0; y < hit.texture.height; y++) { // Для каждого пикселя в столбике...
           color imgPix = hit.texture.pixels[y * hit.texture.width + x];
-          color pix = color(colorDrawDist * red(imgPix),
-                            colorDrawDist * green(imgPix),
-                            colorDrawDist * blue(imgPix),
-                            alpha(imgPix));
+          color pix = color(lerp(red  (imgPix), red  (r_fogColor), fogAmount),
+                            lerp(green(imgPix), green(r_fogColor), fogAmount),
+                            lerp(blue (imgPix), blue (r_fogColor), fogAmount),
+                            lerp(alpha(imgPix), alpha(r_fogColor), fogAmount));
           
           stroke(pix);
           
@@ -168,9 +164,10 @@ void renderViewport(Camera viewport) {
                i, map(wallTop - wallHeight * pixYEnd   - currentMap.player.camera.origin.z, -0.5, 0.5, (0.5 + drawDist) * height, (0.5 - drawDist) * height));
         }
       } else {
-        color pix = color(colorDrawDist * red(r_noTextureColor),
-                          colorDrawDist * green(r_noTextureColor),
-                          colorDrawDist * blue(r_noTextureColor));
+        color pix = color(lerp(red  (r_noTextureColor), red  (r_fogColor), fogAmount),
+                          lerp(green(r_noTextureColor), green(r_fogColor), fogAmount),
+                          lerp(blue (r_noTextureColor), blue (r_fogColor), fogAmount),
+                          lerp(alpha(r_noTextureColor), alpha(r_fogColor), fogAmount));
         
         stroke(pix);
         
@@ -195,4 +192,8 @@ void drawMinimap(float x, float y, float scale) {
   }
   
   circle(currentMap.player.origin.x * scale + x, currentMap.player.origin.y * scale + y, currentMap.player.radius * 2 * scale);
+  line(currentMap.player.origin.x * scale + x,
+       currentMap.player.origin.y * scale + y,
+       (currentMap.player.origin.x + cos(currentMap.player.direction)) * scale + x,
+       (currentMap.player.origin.y + sin(currentMap.player.direction)) * scale + y);
 }
