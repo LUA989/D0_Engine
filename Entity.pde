@@ -43,7 +43,8 @@ class Player extends DynamicEntity {
   
   final PVector camPos = new PVector(0, 0, 1.875);
   
-  final float radius = 0.25, height = 2, speed = 5, friction = 5.2;
+  final float radius = 0.25, height = 2, speed = 5;
+  float pl_friction = 0.05;
   
   Camera camera;
   
@@ -126,11 +127,11 @@ class Player extends DynamicEntity {
     origin.add(PVector.mult(velocity, dt));
     
     if(isOnGround()) {
-      velocity = flat(velocity).div(friction / dt); // vel / friction * dt
+      velocity = flat(velocity).div(pl_friction + 1.0); // Чтобы при трении в 0 мы просто бесконечно скользили, а не улетали в бесконечность
       velocity.z *= -1;
     }
     
-    velocity.z -= currentMap.w_gravity;
+    velocity.z -= currentMap.w_gravity * dt;
     
     camera.origin = PVector.add(origin, camPos);
     camera.direction = direction;
