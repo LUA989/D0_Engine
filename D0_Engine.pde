@@ -20,8 +20,6 @@ void setup() {
   
   text("Loading...", 5, 5);
   
-  pressedKeys = new ArrayList<>();
-  
   precacheTextures(sketchPath() + "\\assets\\textures");
   
   loadMap();
@@ -48,7 +46,12 @@ void draw() {
                        5, 5);
 }
 
-
+void keyPressed() {
+  switch(key) {
+    case '5':
+    saveFrame("screenshot-" + year() + month() + day() + "-#####.png");
+  }
+}
 
 void loadMap() {
   println("Loading Map...");
