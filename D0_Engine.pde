@@ -3,6 +3,8 @@
 
 import java.io.File;
 import java.util.Comparator;
+import java.io.Serializable;
+import java.util.function.*;
 
 float dt = 0, time = 0;
 
@@ -25,6 +27,10 @@ void setup() {
   loadMap();
   
   viewportCamera = currentMap.player.camera;
+  
+  PVector v = new PVector();
+  
+  println(v instanceof Serializable);
 }
 
 void draw() {
@@ -46,12 +52,7 @@ void draw() {
                        5, 5);
 }
 
-void keyPressed() {
-  switch(key) {
-    case '5':
-    saveFrame("screenshot-" + year() + month() + day() + "-#####.png");
-  }
-}
+
 
 void loadMap() {
   println("Loading Map...");
@@ -197,6 +198,6 @@ void drawMinimap(float x, float y, float scale) {
   circle(currentMap.player.origin.x * scale + x, currentMap.player.origin.y * scale + y, currentMap.player.radius * 2 * scale);
   line(currentMap.player.origin.x * scale + x,
        currentMap.player.origin.y * scale + y,
-       (currentMap.player.origin.x + cos(currentMap.player.direction)) * scale + x,
-       (currentMap.player.origin.y + sin(currentMap.player.direction)) * scale + y);
+      (currentMap.player.origin.x + cos(currentMap.player.direction)) * scale + x,
+      (currentMap.player.origin.y + sin(currentMap.player.direction)) * scale + y);
 }
