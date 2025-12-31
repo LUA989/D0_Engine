@@ -5,6 +5,8 @@ int k_turnLeft = 'q';
 int k_turnRight = 'e';
 int k_slideLeft = 'a';
 int k_slideRight = 'd';
+int k_sprint = 0x10000 | SHIFT;
+int k_jump = ' ';
 
 Consumer<Event> playerController = event -> {
   if(event instanceof KeyPressedEvent) {
@@ -13,7 +15,9 @@ Consumer<Event> playerController = event -> {
     if((int)event.data == k_slideLeft)  currentMap.player.isWalkingLeft     = true; 
     if((int)event.data == k_slideRight) currentMap.player.isWalkingRight    = true; 
     if((int)event.data == k_turnLeft)   currentMap.player.isRotatingLeft    = true; 
-    if((int)event.data == k_turnRight)  currentMap.player.isRotatingRight   = true; 
+    if((int)event.data == k_turnRight)  currentMap.player.isRotatingRight   = true;
+    if((int)event.data == k_jump)       currentMap.player.isJumping         = true; 
+    if((int)event.data == k_sprint)     currentMap.player.isSprinting       = true; 
   }
   
   if(event instanceof KeyReleasedEvent) {
@@ -22,7 +26,9 @@ Consumer<Event> playerController = event -> {
     if((int)event.data == k_slideLeft)  currentMap.player.isWalkingLeft     = false; 
     if((int)event.data == k_slideRight) currentMap.player.isWalkingRight    = false; 
     if((int)event.data == k_turnLeft)   currentMap.player.isRotatingLeft    = false; 
-    if((int)event.data == k_turnRight)  currentMap.player.isRotatingRight   = false; 
+    if((int)event.data == k_turnRight)  currentMap.player.isRotatingRight   = false;
+    if((int)event.data == k_jump)       currentMap.player.isJumping         = false; 
+    if((int)event.data == k_sprint)     currentMap.player.isSprinting       = false; 
   }
 };
 
@@ -42,7 +48,8 @@ class Player extends DynamicEntity {
           isWalkingRight    = false,
           isRotatingLeft    = false,
           isRotatingRight   = false,
-          isJumping         = false;
+          isJumping         = false,
+          isSprinting       = false;
   
   Camera camera;
   
@@ -75,12 +82,16 @@ class Player extends DynamicEntity {
       if(isOnGround()) {
         PVector moveDir = new PVector();
         
-        if(isWalkingForward)  moveDir.x += speed;
+        if(isWalkingForward) moveDir.x += speed;
+        if(isSprinting) moveDir.x *= 2.25;
+        
         if(isWalkingBackward) moveDir.x -= speed;
         if(isWalkingLeft)     moveDir.y -= speed;
         if(isWalkingRight)    moveDir.y += speed;
         
         moveDir.rotate(direction);
+        
+        if(isJumping) moveDir.z = 4;
         
         velocity = moveDir;
       }
