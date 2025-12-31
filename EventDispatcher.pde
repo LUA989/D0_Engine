@@ -7,6 +7,8 @@ class EventDispatcher {
   }
   
   void send(Event event) {
+    println("Sended Message " + event + " at " + time);
+    
     boolean sendEveryone = false;
     if(event.listener == null) sendEveryone = true;
     

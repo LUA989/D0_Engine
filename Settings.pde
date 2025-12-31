@@ -21,9 +21,7 @@ boolean r_drawSky         = true;
 boolean r_debugText       = true;
 float   r_renderDist      = 32;
 boolean r_drawFog         = true;
-color   r_fogColor        = #FFFFFF;
-float   r_fogStartDist    = 16;
+color   r_fogColor        = #7F7F7F;
+float   r_fogStartDist    = 0;
 
 float   cam_fov = 90;
-
-int     k_forward = 'w';

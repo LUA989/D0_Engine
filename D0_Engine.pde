@@ -6,10 +6,11 @@ import java.util.Comparator;
 import java.io.Serializable;
 import java.util.function.*;
 
-float dt = 0, time = 0;
+float dt = 0, time = 0, frameTime = 0;
 
 Map currentMap;
 Camera viewportCamera;
+EventDispatcher engineDispatcher;
 
 PImage[] cachedImages;
 
@@ -22,19 +23,17 @@ void setup() {
   
   text("Loading...", 5, 5);
   
-  precacheTextures(sketchPath() + "\\assets\\textures");
-  
-  loadMap();
-  
-  viewportCamera = currentMap.player.camera;
-  
-  PVector v = new PVector();
-  
-  println(v instanceof Serializable);
+  try {
+    init();
+  } catch(Exception e) {
+    System.err.println("Could not initialize engine");
+    System.err.println("Exception: " + e);
+  }
 }
 
 void draw() {
-  dt = currentMap.w_timeSpeed / frameRate;
+  frameTime = 1.0 / frameRate;
+  dt = currentMap.w_timeSpeed * frameTime;
   time += dt;
   
   if(currentMap.w_updateEntities) updateEntities();
@@ -42,17 +41,45 @@ void draw() {
   if(r_drawSky) drawSky();
   renderViewport(viewportCamera);
   
+  engineDispatcher.send(new CameraFrameDrawedEvent(new Event()));
+  
   if(r_drawCrosshair) drawCrosshair(r_crosshairRadius);
   if(r_drawMinimap) drawMinimap(50, 100, r_minimapScale);
   
   if(r_debugText) text("D0 Engine v5\nFPS: " + frameRate +
+                       "\nFrame Time: " + frameTime +
                        "\nPlayer Position: " + currentMap.player.origin +
                        "\nPlayer Rotation: " + degrees(currentMap.player.direction) + "°" +
                        "\nTime: " + time,
                        5, 5);
+  engineDispatcher.send(new DrawedGUIEvent(new Event()));
+}
+
+void keyPressed() {
+  if(key == CODED) engineDispatcher.send(new KeyPressedEvent(new Event(null, int(0x10000 | keyCode))));
+  engineDispatcher.send(new KeyPressedEvent(new Event(null, int(key))));
+  if(key == ESC) key = 0;
+}
+
+void keyReleased() {
+  if(key == CODED) engineDispatcher.send(new KeyReleasedEvent(new Event(null, int(0x10000 | keyCode))));
+                   engineDispatcher.send(new KeyReleasedEvent(new Event(null, int(key))));
 }
 
 
+
+void init() {
+  engineDispatcher = new EventDispatcher();
+  
+  precacheTextures(sketchPath() + "\\assets\\textures");
+  
+  loadMap();
+  engineDispatcher.listeners.add(currentMap.player.keyListener);
+  
+  viewportCamera = currentMap.player.camera;
+  
+  engineDispatcher.send(new EngineInitializedEvent(new Event()));
+}
 
 void loadMap() {
   println("Loading Map...");

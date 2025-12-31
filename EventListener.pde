@@ -3,7 +3,7 @@ class EventListener {
   Consumer<Event> action;
   
   EventListener() {
-    action = e -> {};
+    action = e -> println("Received Message: " + e + " at " + time);
   }
   
   EventListener(Consumer<Event> _action) {
